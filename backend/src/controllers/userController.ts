@@ -2,8 +2,34 @@ import { Request, Response } from 'express'
 import { prisma } from '../app'
 
 export async function getAllUser(req: Request, res: Response) {
+  const { search } = req.query
+  let users;
   try {
-    const users = await prisma.users.findMany({
+    if (!search) {
+      users = await prisma.users.findMany({
+        select: {
+          id: true,
+          username: true,
+          email: true
+        }
+      })
+    }
+
+    users = await prisma.users.findMany({
+      where: {
+        OR: [
+          {
+            username: {
+              contains: search as string
+            }
+          },
+          {
+            email: {
+              contains: search as string
+            }
+          }
+        ]
+      },
       select: {
         id: true,
         username: true,
@@ -11,7 +37,6 @@ export async function getAllUser(req: Request, res: Response) {
       }
     })
 
-  console.log(users)
     res.status(200).json(users)
   } catch (err) {
     console.log(err)

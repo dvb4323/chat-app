@@ -1,6 +1,8 @@
 import { Request, Response } from 'express'
 import { AuthRequest } from '../middlewares/auth'
 import { prisma } from '../app'
+import { ConversationSelect } from '../models/Conversation'
+import { MessageSelect } from '../models/Message'
 
 export const createNewConversation = async (
   req: AuthRequest,
@@ -19,20 +21,9 @@ export const createNewConversation = async (
             { userId: userId! },
             ...participantIds.map((id: number) => ({ userId: id }))
           ]
-        }
+        },
       },
-      include: {
-        Participants: {
-          include: {
-            Users: {
-              select: {
-                id: true,
-                username: true
-              }
-            }
-          }
-        }
-      }
+      select: ConversationSelect
     })
 
     res.status(201).json(conversation)
@@ -53,26 +44,7 @@ export const getConversations = async (req: AuthRequest, res: Response) => {
           }
         }
       },
-      include: {
-        Participants: {
-          select: {
-            userId: true,
-            conversationsId: true,
-            Users: {
-              select: {
-                id: true,
-                username: true
-              }
-            }
-          }
-        },
-        Messages: {
-          orderBy: {
-            createdAt: 'desc'
-          },
-          take: 1
-        }
-      }
+      select: ConversationSelect
     })
     res.json(conversations)
   } catch (error) {
@@ -85,7 +57,7 @@ export const getConversation = async (req: AuthRequest, res: Response) => {
     const { id } = req.params
     const userId = req.userId
 
-    const conversation = await prisma.conversations.findMany({
+    const conversation = await prisma.conversations.findFirst({
       where: {
         id: parseInt(id),
         Participants: {
@@ -94,24 +66,7 @@ export const getConversation = async (req: AuthRequest, res: Response) => {
           }
         }
       },
-      include: {
-        Participants: {
-          include: {
-            Users: {
-              select: {
-                id: true,
-                username: true
-              }
-            }
-          }
-        },
-        Messages: {
-          select: {
-            content: true,
-            senderId: true
-          }
-        }
-      }
+      select: ConversationSelect
     })
 
     if (!conversation) {
@@ -123,4 +78,32 @@ export const getConversation = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     res.status(500).json({ error: 'Error fetching conversation' })
   }
+}
+
+export const sendMessage = async (
+  {content, conversationId, userId}: {content: string, conversationId: number, userId: number}
+) => {
+  const message = await prisma.messages.create({
+    data: {
+      content,
+      conversationId,
+      senderId: userId
+    },
+    select: MessageSelect
+  })
+
+  return message
+}
+
+export const getConversationMembers = async (conversationId: number) => {
+  const members = await prisma.participants.findMany({
+    where: {
+      conversationId
+    },
+    select: {
+      userId: true
+    }
+  })
+
+  return members.map((member) => member.userId)
 }

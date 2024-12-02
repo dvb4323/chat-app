@@ -31,8 +31,8 @@ model Messages {
 // usersId         Int?
   content         String
   createdAt       DateTime       @default(now())
-  Conversations   Conversations? @relation(fields: [conversationsId], references: [id])
-  conversationsId Int?
+  Conversations   Conversations? @relation(fields: [conversationId], references: [id])
+  conversationId Int?
   Attachments     Attachments[]
 }
 
@@ -49,8 +49,8 @@ model Participants {
   userId          Int
   Users           Users?         @relation(fields: [userId], references: [id])
 // usersId         Int?
-  Conversations   Conversations? @relation(fields: [conversationsId], references: [id])
-  conversationsId Int?
+  Conversations   Conversations? @relation(fields: [conversationId], references: [id])
+  conversationId Int?
 }
 
 model Attachments {
