@@ -1,0 +1,15 @@
+{
+  "name": "chat-app",
+  "version": "1.0.0",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "start:be": "npm run start --workspace=backend",
+    "start:fe": "npm run start --workspace=frontend",
+    "dev:be": "npm run dev --workspace=backend",
+    "dev:fe": "npm run dev --workspace=frontend",
+    "build": "npm run build --workspaces"
+  }
+}

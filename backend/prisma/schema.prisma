@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id              Int            @id @default(autoincrement())
+  email           String         @unique
+  username        String
+  hashed_password String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  Messages        Messages[]
+  Participants    Participants[]
+}
+
+model Messages {
+  id              Int            @id @default(autoincrement())
+  senderId        Int
+  Users           Users?         @relation(fields: [senderId], references: [id])
+// usersId         Int?
+  content         String
+  createdAt       DateTime       @default(now())
+  Conversations   Conversations? @relation(fields: [conversationsId], references: [id])
+  conversationsId Int?
+  Attachments     Attachments[]
+}
+
+model Conversations {
+  id           Int            @id @default(autoincrement())
+  name         String
+  type         String
+  Messages     Messages[]
+  Participants Participants[]
+}
+
+model Participants {
+  id              Int            @id @default(autoincrement())
+  userId          Int
+  Users           Users?         @relation(fields: [userId], references: [id])
+// usersId         Int?
+  Conversations   Conversations? @relation(fields: [conversationsId], references: [id])
+  conversationsId Int?
+}
+
+model Attachments {
+  id         Int       @id @default(autoincrement())
+  Messages   Messages? @relation(fields: [messagesId], references: [id])
+  messagesId Int?
+  fileName   String
+  url        String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
